@@ -44,3 +44,116 @@ main4 =
     putStrLn "Capiche?!"
   else
     putStrLn ("The reverse of " ++ str ++ " is " ++ reverse str ++ ".")
+
+-- Imagine you have a database with information about persons and the towns where they were born. You
+-- also know for most towns, which countries they are part of. This can be represented in terms of tuples,
+-- e.g.,
+-- type ID = Int
+-- type Name = String
+-- type Country = String
+-- type Town = String
+
+-- nameTable :: [(ID, Name)]
+-- nameTable = [(1, "Aybeesky"),
+-- (2, "Beeseesky"),
+-- (3, "Seedeesky"),
+-- (4, "Ayefsky"),
+-- (5, "Deebeesky")]
+-- btownTable :: [(ID, Town)]
+-- btownTable = [(1, "Teetown"),
+-- (2, "Eston"),
+-- (3, "Arby"),
+-- (5, "Esfield")] -- 4th is missing
+-- townCountryTable :: [(Town, Country)]
+-- townCountryTable = [("Teetown", "Teeland"),
+-- ("Eston", "Exland"),
+-- ("Arby", "Teeland")] -- "Essfield" is missing
+-- Note that some entries are missing.
+-- Use Hoogle to look up a function of type Eq a => a -> [(a, b)] -> Maybe b, which you can use to
+-- look up elements in such a list of tuples.
+-- Now implement the following functions:
+-- getID :: Name -> Maybe ID
+-- -- returns the ID of a person (if available)
+-- getBTown :: ID -> Maybe Town
+-- -- returns the town in which a certain person was born
+-- getCountry :: Town -> Maybe Country
+-- -- returns the corresponding country of a town
+-- Now use the monadic properties of the Maybe data type to implement the following function:
+-- getBCountry :: Name -> Maybe Country
+-- -- returns the country in which a certain person was born
+-- Solve this once by using do-notation, and once using >>=.
+
+-- lookup :: Eq a => a -> [(a, b)] -> Maybe b
+-- >>> lookup 2 []
+-- Nothing
+-- >>> lookup 2 [(1, "first")]
+-- Nothing
+-- >>> lookup 2 [(1, "first"), (2, "second"), (3, "third")]
+-- Just "second"
+  
+type ID = Int
+type Name = String
+type Country = String
+type Town = String
+
+-- Example tables
+nameTable :: [(ID, Name)]
+nameTable = [(1, "Aybeesky"),
+             (2, "Beeseesky"),
+             (3, "Seedeesky"),
+             (4, "Ayefsky"),
+             (5, "Deebeesky")]
+
+btownTable :: [(ID, Town)]
+btownTable = [(1, "Teetown"),
+              (2, "Eston"),
+              (3, "Arby"),
+              (5, "Esfield")]
+
+townCountryTable :: [(Town, Country)]
+townCountryTable = [("Teetown", "Teeland"),
+                    ("Eston", "Exland"),
+                    ("Arby", "Teeland")]
+
+-- Lookup functions
+getID :: Name -> Maybe ID
+getID name = lookup name [(n, id) | (id, n) <- nameTable]
+
+getBTown :: ID -> Maybe Town
+getBTown id = lookup id btownTable
+
+getCountry :: Town -> Maybe Country
+getCountry town = lookup town townCountryTable
+
+-- Using do-notation
+getBCountryDo :: Name -> Maybe Country
+getBCountryDo name = do
+  id <- getID name
+  town <- getBTown id
+  getCountry town
+
+-- Using >>= notation (monadic binding)
+getBCountryBind :: Name -> Maybe Country
+getBCountryBind name = 
+  getID name >>= \id ->
+  getBTown id >>= \town ->
+  getCountry town
+
+-- Example usage
+main :: IO ()
+main = do
+  print $ getBCountryDo "Aybeesky"    -- Should print: Just "Teeland"
+  print $ getBCountryBind "Beeseesky" -- Should print: Just "Exland"
+  print $ getBCountryDo "Ayefsky"     -- Should print: Nothing
+  print $ getBCountryBind "Deebeesky" -- Should print: Nothing
+
+
+
+
+
+
+
+
+
+
+
